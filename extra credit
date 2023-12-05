@@ -1,0 +1,118 @@
+.data
+promptL: .asciiz "Enter the value for L: "
+promptM: .asciiz "Enter the value for M: "
+promptN: .asciiz "Enter the value for N: "
+illegalMsg: .asciiz "Illegal Number!\n"
+resultMsg: .asciiz "The Greatest Common Divisor is: "
+
+.text
+.globl main
+
+main:
+    # Get input for L
+    li $v0, 4
+    la $a0, promptL
+    syscall
+    li $v0, 5
+    syscall
+    move $s0, $v0 # Save L in $s0
+
+    # Check if L is legal
+    bgt $s0, 20, legalL
+    j illegalL
+
+legalL:
+    # Get input for M
+    li $v0, 4
+    la $a0, promptM
+    syscall
+    li $v0, 5
+    syscall
+    move $s1, $v0 # Save M in $s1
+
+    # Check if M is legal
+    bgt $s1, 20, legalM
+    j illegalM
+
+legalM:
+    # Get input for N
+    li $v0, 4
+    la $a0, promptN
+    syscall
+    li $v0, 5
+    syscall
+    move $s2, $v0 # Save N in $s2
+
+    # Check if N is legal
+    bgt $s2, 20, legalN
+    j illegalN
+
+legalN:
+    # Calculate GCD of L, M, N
+    move $t0, $s0  # Initialize $t0 with L
+    move $t1, $s1  # Initialize $t1 with M
+    move $t2, $s2  # Initialize $t2 with N
+
+    # Calculate GCD of L and M using the Euclidean algorithm
+    jal gcd_algorithm
+
+    # Result is in $t1 (contains the GCD of L and M)
+    # Now calculate GCD of the result with N
+    move $t0, $t1  # Move GCD of L and M to $t0
+    move $t1, $t2  # Move N to $t1
+
+    # Call the gcd_algorithm function again for GCD of (GCD(L, M), N)
+    jal gcd_algorithm
+
+    # Result is in $t1 (contains the final GCD)
+    # Print the result
+    li $v0, 4
+    la $a0, resultMsg
+    syscall
+
+    li $v0, 1
+    move $a0, $t1
+    syscall
+
+    # Exit the program
+    li $v0, 10
+    syscall
+
+# Function to calculate GCD using the Euclidean algorithm
+gcd_algorithm:
+    gcd_loop:
+        # Calculate remainder (temporarily store in $t3)
+        divu $t0, $t1
+        mfhi $t3
+
+        # Check if remainder is zero
+        beqz $t3, gcd_done
+
+        # Update $t0 with $t1 and $t1 with remainder ($t3)
+        move $t0, $t1
+        move $t1, $t3
+
+        j gcd_loop
+
+    gcd_done:
+        # Result is in $t1 (contains the GCD)
+        jr $ra  # Return from function
+
+# Illegal number functions
+illegalL:
+    li $v0, 4
+    la $a0, illegalMsg
+    syscall
+    j main
+
+illegalM:
+    li $v0, 4
+    la $a0, illegalMsg
+    syscall
+    j main
+
+illegalN:
+    li $v0, 4
+    la $a0, illegalMsg
+    syscall
+    j main
